@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Finder AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+        }
+        .gradient-bg {
+            background: linear-gradient(to right, #2b6cb0, #2c5282);
+        }
+        .card {
+            background-color: #2d3748; /* Dark card background */
+            color: #e2e8f0; /* Light text */
+        }
+        .btn-primary {
+            background-color: #2b6cb0;
+            color: #e2e8f0;
+        }
+        .btn-primary:hover {
+            background-color: #2c5282;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-6">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-4xl font-bold">Gift Finder AI</h1>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="#" class="hover:underline">Home</a></li>
+                    <li><a href="#" class="hover:underline">About</a></li>
+                    <li><a href="#" class="hover:underline">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-5xl font-bold mb-4">Find the Perfect Gift</h2>
+            <p class="text-lg mb-8">Let AI help you discover the best gifts for any occasion.</p>
+            <a href="#gift-section" class="btn-primary py-3 px-6 rounded-md font-medium transition">Get Started</a>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="gift-section" class="container mx-auto px-4 py-12">
+        <div class="max-w-4xl mx-auto card rounded-lg shadow-lg p-8">
+            <h2 class="text-3xl font-bold text-center mb-6">Ask AI for Gift Suggestions</h2>
+            <form id="gift-form" class="space-y-6">
+                <!-- Prompt Input -->
+                <div>
+                    <label for="prompt" class="block font-medium mb-2">Your Prompt</label>
+                    <textarea id="prompt" name="prompt" rows="4" class="w-full p-3 border border-gray-600 rounded-md bg-gray-800 text-gray-200" placeholder="Ask AI for gift ideas, e.g., 'What are the best gifts for a wedding under $50?'"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn-primary w-full py-3 px-4 rounded-md font-medium transition duration-300">
+                    Get Gift Ideas
+                </button>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="mt-12 hidden">
+            <h3 class="text-2xl font-bold text-center mb-6">Gift Recommendations</h3>
+            <div id="results-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="gradient-bg text-white py-6 mt-12">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2023 Gift Finder AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        document.getElementById('gift-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const prompt = document.getElementById('prompt').value;
+
+            document.getElementById('results-section').classList.remove('hidden');
+            document.getElementById('results-container').innerHTML = '<p class="text-center">Loading recommendations...</p>';
+
+            try {
+                const response = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch recommendations');
+                }
+
+                const data = await response.json();
+                const recommendations = data.recommendations;
+
+                const container = document.getElementById('results-container');
+                container.innerHTML = '';
+
+                if (recommendations.length === 0) {
+                    container.innerHTML = '<p class="text-center">No recommendations found. Try a different search.</p>';
+                    return;
+                }
+
+                recommendations.forEach(gift => {
+                    const card = document.createElement('div');
+                    card.className = 'card rounded-lg shadow-md p-4';
+                    card.innerHTML = `
+                        <h4 class="text-lg font-bold mb-2">${gift.name}</h4>
+                        <p class="mb-2">${gift.description}</p>
+                        <p class="font-medium">Price: ${gift.price}</p>
+                        <a href="${gift.url}" target="_blank" class="text-blue-400 hover:underline">Learn More</a>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('results-container').innerHTML = '<p class="text-center text-red-500">An error occurred. Please try again later.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
